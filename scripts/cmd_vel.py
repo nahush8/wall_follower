@@ -81,27 +81,35 @@ def flight():
             key = kb.getch()
 
             if key == 'a':
-                vel.twist.linear.x = 1
+                vel.twist.linear.x = -1
                 vel.twist.linear.y = 0
                 vel.twist.linear.z = 0
                 vel.twist.angular.z = 0
             elif key == 'd':
-                vel.twist.linear.x = 0
-                vel.twist.linear.y = 1
+                vel.twist.linear.x = 1
+                vel.twist.linear.y = 0
                 vel.twist.linear.z = 0
                 vel.twist.angular.z = 0
             elif key == 'w':
                 vel.twist.linear.x = 0
+                vel.twist.linear.y = 1
+                vel.twist.linear.z = 0
+                vel.twist.angular.z = 0
+            elif key == 's':
+                vel.twist.linear.x = 0
+                vel.twist.linear.y = -1
+                vel.twist.linear.z = 0
+                vel.twist.angular.z = 0
+            elif key == 'q':
+                vel.twist.linear.x = 0
                 vel.twist.linear.y = 0
                 vel.twist.linear.z = 1
                 vel.twist.angular.z = 0
-            elif key == 's':
+            elif key == 'e':
                 vel.twist.linear.x = 0
                 vel.twist.linear.y = 0
                 vel.twist.linear.z = -1
                 vel.twist.angular.z = 0
-            local_vel_pub.publish(vel)
-
             elif key == 'r':
                 vel.twist.linear.x = 0
                 vel.twist.linear.y = 0
