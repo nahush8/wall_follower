@@ -14,6 +14,11 @@ def state_cb(state):
     print state
 
 def flight():
+    LINEAR_X_MUL_FACTOR = 2
+    LINEAR_Y_MUL_FACTOR = 2
+    LINEAR_Z_MUL_FACTOR = 1
+    ANGULAR_Z_MUL_FACTOR = 1
+
     key = '\0'
     kb = KBHit()
     # initialize the subscriber node
@@ -49,7 +54,7 @@ def flight():
     vel = TwistStamped()
 
     last_request = rospy.get_rostime()
-
+    '''
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
     pose.pose.position.z = 2;
@@ -68,7 +73,7 @@ def flight():
         local_vel_pub.publish(vel)
         time.sleep(0.1)
     vel.twist.linear.z = 0
-       
+    '''   
     while not rospy.is_shutdown() :
         state = rospy.wait_for_message("mavros/state",State)
         if state.mode != 'OFFBOARD':
@@ -85,21 +90,24 @@ def flight():
         rh = joy.axes[2] #x
         rv = joy.axes[3] #y
 
-        if lh != 0 or lv != 0 or rh !=0 or rv !=0 :
-            vel.twist.linear.x = rh * 10
-            vel.twist.linear.y = rv * 10
-            vel.twist.linear.z = lv * 10
-            vel.twist.angular.z = lh * 10
+        if lh != 0.0 or lv != 0.0 or rh !=0.0 or rv !=0.0:
+            vel.twist.linear.x = rh * LINEAR_X_MUL_FACTOR
+            vel.twist.linear.y = -rv * LINEAR_Y_MUL_FACTOR
+            vel.twist.linear.z = lv * LINEAR_Z_MUL_FACTOR
+            vel.twist.angular.z = lh * ANGULAR_Z_MUL_FACTOR
             local_vel_pub.publish(vel)
 
         else:
+            '''
             vel.twist.linear.x = 0
             vel.twist.linear.y = 0
             vel.twist.linear.z = 0
             vel.twist.angular.z = 0.001
             local_vel_pub.publish(vel)
-            #curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)
-            #local_pos_pub.publish(curr_pose)
+            '''
+            curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)
+            local_pos_pub.publish(curr_pose)
+
         #print curr_pose
 
     #rospy.spin()

@@ -2,12 +2,18 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 
+rewardSum = 0
 
 def callback(data):
-	listRange = []
-	for i in range(0,360):
+    global rewardSum
+    listRange = []
+    for i in range(0,360):
 		listRange.append(round(data.ranges[i],2))
-	rospy.loginfo(rospy.get_caller_id() + "%s\n\n\n\n\n", listRange)
+    #rospy.loginfo(rospy.get_caller_id() + "%s\n\n\n\n\n", listRange)
+    if any(value < 2 and value > 1 for value in listRange):
+        print "TOO CLOSE TO THE WALL"
+        rewardSum += -1
+    print rewardSum    
     
 def listener():
 
