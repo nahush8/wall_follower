@@ -6,14 +6,16 @@ from mavros.utils import *
 from mavros_msgs.msg import State
 from mavros_msgs.srv import SetMode, StreamRate, StreamRateRequest, CommandBool
 from geometry_msgs.msg import *
+from sensor_msgs.msg import Joy
 import time
-import kb_hit
+from kb_hit import KBHit
 
 def state_cb(state):
     print state
 
 def flight():
-    key = False
+    key = '\0'
+    kb = KBHit()
     # initialize the subscriber node
     rospy.init_node('flight', anonymous=True)
     # subcribe to the mavros State
@@ -65,65 +67,39 @@ def flight():
         #local_pos_pub.publish(pose);
         local_vel_pub.publish(vel)
         time.sleep(0.1)
-
+    vel.twist.linear.z = 0
+       
     while not rospy.is_shutdown() :
         state = rospy.wait_for_message("mavros/state",State)
-        kb = kb_hit.KBHit()
         if state.mode != 'OFFBOARD':
         	set_mode_client(0,'OFFBOARD')
         	print "OFFBOARD ENABLED"
 
         if not state.armed:
         	arming_client(True)
-        	print "ARMED"
-        curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)  
-        if kb.kbhit():
-            key = kb.getch()
 
-            if key == 'a':
-                vel.twist.linear.x = -1
-                vel.twist.linear.y = 0
-                vel.twist.linear.z = 0
-                vel.twist.angular.z = 0
-            elif key == 'd':
-                vel.twist.linear.x = 1
-                vel.twist.linear.y = 0
-                vel.twist.linear.z = 0
-                vel.twist.angular.z = 0
-            elif key == 'w':
-                vel.twist.linear.x = 0
-                vel.twist.linear.y = 1
-                vel.twist.linear.z = 0
-                vel.twist.angular.z = 0
-            elif key == 's':
-                vel.twist.linear.x = 0
-                vel.twist.linear.y = -1
-                vel.twist.linear.z = 0
-                vel.twist.angular.z = 0
-            elif key == 'q':
-                vel.twist.linear.x = 0
-                vel.twist.linear.y = 0
-                vel.twist.linear.z = 1
-                vel.twist.angular.z = 0
-            elif key == 'e':
-                vel.twist.linear.x = 0
-                vel.twist.linear.y = 0
-                vel.twist.linear.z = -1
-                vel.twist.angular.z = 0
-            elif key == 'r':
-                vel.twist.linear.x = 0
-                vel.twist.linear.y = 0
-                vel.twist.linear.z = 0
-                vel.twist.angular.z = 1
+        joy = rospy.wait_for_message("joy",Joy)
+
+        lh = joy.axes[0] #YAW
+        lv = joy.axes[1] #Z  
+        rh = joy.axes[2] #x
+        rv = joy.axes[3] #y
+
+        if lh != 0 or lv != 0 or rh !=0 or rv !=0 :
+            vel.twist.linear.x = rh * 10
+            vel.twist.linear.y = rv * 10
+            vel.twist.linear.z = lv * 10
+            vel.twist.angular.z = lh * 10
             local_vel_pub.publish(vel)
 
-            kb.set_normal_term()
         else:
             vel.twist.linear.x = 0
             vel.twist.linear.y = 0
             vel.twist.linear.z = 0
-            vel.twist.angular.z = 1
+            vel.twist.angular.z = 0.001
             local_vel_pub.publish(vel)
+            #curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)
+            #local_pos_pub.publish(curr_pose)
         #print curr_pose
 
     #rospy.spin()
