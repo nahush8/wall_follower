@@ -8,19 +8,16 @@ from mavros_msgs.srv import SetMode, StreamRate, StreamRateRequest, CommandBool
 from geometry_msgs.msg import *
 from sensor_msgs.msg import Joy, LaserScan
 import time
-from kb_hit import KBHit
 
 def state_cb(state):
     print state
 
 def flight():
-    LINEAR_X_MUL_FACTOR = 2
-    LINEAR_Y_MUL_FACTOR = 2
-    LINEAR_Z_MUL_FACTOR = 1
-    ANGULAR_Z_MUL_FACTOR = 1
+    LINEAR_X_MUL_FACTOR = 10
+    LINEAR_Y_MUL_FACTOR = 10
+    LINEAR_Z_MUL_FACTOR = 20
+    ANGULAR_Z_MUL_FACTOR = 10
 
-    key = '\0'
-    kb = KBHit()
     # initialize the subscriber node
     rospy.init_node('flight', anonymous=True)
     # subcribe to the mavros State
@@ -89,10 +86,10 @@ def flight():
         lv = joy.axes[1] #Z  
         rh = joy.axes[2] #x
         rv = joy.axes[3] #y
-        
+
         if lh != 0.0 or lv != 0.0 or rh !=0.0 or rv !=0.0:
             vel.twist.linear.x = rh * LINEAR_X_MUL_FACTOR
-            vel.twist.linear.y = -rv * LINEAR_Y_MUL_FACTOR
+            vel.twist.linear.y = rv * LINEAR_Y_MUL_FACTOR
             vel.twist.linear.z = lv * LINEAR_Z_MUL_FACTOR
             vel.twist.angular.z = lh * ANGULAR_Z_MUL_FACTOR
             local_vel_pub.publish(vel)
@@ -104,13 +101,15 @@ def flight():
             vel.twist.linear.y = 0
             vel.twist.linear.z = 0
             vel.twist.angular.z = 0.001
+            
             local_vel_pub.publish(vel)
             '''
             curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)
             local_pos_pub.publish(curr_pose)
-
+            #print curr_pose
         '''
         A basic wall repel control
+        '''
         '''
         laserData = rospy.wait_for_message("/laser/scan", LaserScan)
         if any(value < 2 and value > 1 for value in laserData.ranges):
@@ -119,7 +118,8 @@ def flight():
             vel.twist.linear.z = lv * LINEAR_Z_MUL_FACTOR
             vel.twist.angular.z = lh * ANGULAR_Z_MUL_FACTOR
             local_vel_pub.publish(vel)
-        #print curr_pose
+        '''
+        
 
     #rospy.spin()
 

@@ -6,14 +6,13 @@ rewardSum = 0
 
 def callback(data):
     global rewardSum
-    listRange = []
-    for i in range(0,360):
-		listRange.append(round(data.ranges[i],2))
-    #rospy.loginfo(rospy.get_caller_id() + "%s\n\n\n\n\n", listRange)
-    if any(value < 2 and value > 1 for value in listRange):
+    #print data.ranges
+    if any((value < 2 and value > 1) for value in data.ranges):
         print "TOO CLOSE TO THE WALL"
         rewardSum += -1
-    print rewardSum    
+    #print rewardSum    
+    if min(data.ranges) < 2 and min(data.ranges) > 1:
+        print min(data.ranges)
     
 def listener():
 
