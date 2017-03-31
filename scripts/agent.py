@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+import numpy as np
 import rospy
 import time
 import random
@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import actionlib
 import matplotlib.pyplot as plt
 import wall_follower.msg
+import gp
 import mavros
 #import update_transition_class
 from mavros.utils import *
@@ -17,14 +18,20 @@ from mavros_msgs.srv import SetMode, StreamRate, StreamRateRequest, CommandBool,
 from geometry_msgs.msg import *
 from sensor_msgs.msg import Joy, LaserScan
 
-
+record = []
+gp_obj = gp.update_gp_class()
+np.random.seed(1)
+counter = 0
 def agent_client():
+	global record
+	global counter
 	joyAction = [0,0,0,0]
 	action_client = actionlib.SimpleActionClient('perception',wall_follower.msg.agentAction)
 	action_client.wait_for_server()
 	print "Connected"
 
-	while not rospy.is_shutdown():
+	#while not rospy.is_shutdown():
+	while counter < 100:
 		joy = rospy.wait_for_message("joy",Joy)
 
 		joyAction[0] = joy.axes[0] #YAW #lh
@@ -36,14 +43,33 @@ def agent_client():
 		#print goal
 		action_client.send_goal(goal,done_cb= done)
 		action_client.wait_for_result()
+	
+	print "---------- DONE ----------"
+	print record
+	print "=================="
+	print "                  "
+	trainingX = []
+	targetX = []
+	for elements in record:
+		trainingX.append(elements[0])
+		targetX.append( elements[1] )
 
 
-def done(returnCode,result):  
+	DX , tX = np.array( trainingX ), np.array( targetX )
+
+	print DX
+	print tX
+	gp_obj.update_gp(record)
+
+def done(returnCode,result): 
+	global record  
+	global counter
 	if returnCode == 3:
 		print "Successful"
 		print result.reward
 		print result.state
-
+		record.append([result.state, result.reward])
+		counter = counter + 1 
 if __name__ == '__main__':
     try:
         rospy.init_node('agent', anonymous=True)

@@ -23,6 +23,7 @@ class environment(object):
 		print "Action server started"
 
 	def execute(self,goal):
+		Wall_x = 5.10
 		local_pos_pub = rospy.Publisher("mavros/setpoint_position/local",PoseStamped,queue_size=10)
 		local_vel_pub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel",TwistStamped,queue_size=10)
 		pose = PoseStamped()
@@ -66,8 +67,12 @@ class environment(object):
 
 		laserRawData = rospy.wait_for_message("laser/scan",LaserScan)
 		
-
-		self._result.reward= -1
+		curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)
+		if abs(curr_pose.pose.position.x - Wall_x) > 3 and abs(curr_pose.pose.position.x - Wall_x) < 4:
+			self._result.reward= 1
+		else:
+			self._result.reward= -1
+		
 		self._result.state = laserRawData.ranges
 		print "1 unit movement"
 		self._as.set_succeeded(self._result)
