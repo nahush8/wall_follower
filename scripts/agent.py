@@ -31,7 +31,7 @@ def agent_client():
 	print "Connected"
 
 	#while not rospy.is_shutdown():
-	while counter < 100:
+	while counter < 10:
 		joy = rospy.wait_for_message("joy",Joy)
 
 		joyAction[0] = joy.axes[0] #YAW #lh
@@ -64,11 +64,18 @@ def agent_client():
 def done(returnCode,result): 
 	global record  
 	global counter
+	rawLaserDataList = []
 	if returnCode == 3:
 		print "Successful"
+		rawLaserDataList = list(result.state)
+		for index, value in enumerate(rawLaserDataList):
+			if value == float('inf'):
+				rawLaserDataList[index] = 9999
+			#	value = 9999
+		
 		print result.reward
-		print result.state
-		record.append([result.state, result.reward])
+		print rawLaserDataList
+		record.append([rawLaserDataList, result.reward])
 		counter = counter + 1 
 if __name__ == '__main__':
     try:
