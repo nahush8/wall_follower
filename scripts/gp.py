@@ -18,7 +18,7 @@ class update_gp_class:
 		for elements in record:
 			trainingX.append(elements[0])
 			targetX.append( elements[1] )
-
+		print "IN UPDATE GP"
 
 		DX , tX = np.array( trainingX ), np.array( targetX )
 		
@@ -27,4 +27,8 @@ class update_gp_class:
 		kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
 		
 		gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9,alpha=1e-2)		
+		print "DOING GP FIT"
 		gp.fit(DX, tX)
+		print "DONE GP FIT"
+		for element in DX:
+			print gp.predict( element, return_std=True, return_cov=False)

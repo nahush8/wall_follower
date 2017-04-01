@@ -56,9 +56,6 @@ def agent_client():
 
 
 	DX , tX = np.array( trainingX ), np.array( targetX )
-
-	print DX
-	print tX
 	gp_obj.update_gp(record)
 
 def done(returnCode,result): 
