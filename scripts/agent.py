@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import wall_follower.msg
 import gp
 import mavros
+import pickle
 #import update_transition_class
 from mavros.utils import *
 from mavros_msgs.msg import State
@@ -48,6 +49,7 @@ def agent_client():
 	print record
 	print "=================="
 	print "                  "
+	'''
 	trainingX = []
 	targetX = []
 	for elements in record:
@@ -57,6 +59,17 @@ def agent_client():
 
 	DX , tX = np.array( trainingX ), np.array( targetX )
 	gp_obj.update_gp(record)
+	'''
+	gp_obj.update_gp(record)
+	'''
+	output = open('training_set', 'w')
+	output.write(str(record))
+	output.flush()
+	output.close()
+	'''
+	with open('training_set', 'wb') as fp:
+		pickle.dump(record, fp)
+	fp.close()
 
 def done(returnCode,result): 
 	global record  
@@ -78,6 +91,6 @@ if __name__ == '__main__':
     try:
         rospy.init_node('agent', anonymous=True)
         agent_client()
-        rospy.spin()
+        #rospy.spin()
     except rospy.ROSInterruptException:
         print "program interrupted before completion"

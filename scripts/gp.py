@@ -30,5 +30,5 @@ class update_gp_class:
 		print "DOING GP FIT"
 		gp.fit(DX, tX)
 		print "DONE GP FIT"
-		for element in DX:
-			print gp.predict( element, return_std=True, return_cov=False)
+		print gp.predict( DX, return_std=True, return_cov=False)
+		 
