@@ -32,7 +32,7 @@ def agent_client():
 	print "Connected"
 
 	#while not rospy.is_shutdown():
-	while counter < 10:
+	while counter < 100:
 		joy = rospy.wait_for_message("joy",Joy)
 
 		joyAction[0] = joy.axes[0] #YAW #lh
