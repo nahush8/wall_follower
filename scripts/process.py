@@ -5,7 +5,7 @@ import pickle
 gp_obj = gp.update_gp_class()
 with open ('training_set', 'rb') as fp:
 	record = pickle.load(fp)
-print record
+#print record
 #recordTraining = record[0:80]
 #print recordTraining
-#gp_obj.update_gp(record)
+gp_obj.update_gp(record)

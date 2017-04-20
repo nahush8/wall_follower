@@ -14,48 +14,63 @@ np.random.seed(1)
 class update_gp_class:
 
 	def update_gp(self,record):
-		recordTraining = record[0:799]
+		recordTraining = record[0:800]
 		trainingX = []
 		targetX = []
+		tempList = []
 		for elements in recordTraining:
-			trainingX.append(elements[0])
-			targetX.append( elements[1] )
+			val =  min(elements[0])
+			#print "----------"
+			trainingX.append(val)
+			#trainingX.append(elements[0])
+			targetX.append(elements[1])
 		print "IN UPDATE GP"
 
-		DX , tX = np.array( trainingX ), np.array( targetX )
+		DX , tX = np.matrix(trainingX), np.matrix(targetX)	
+		#For 2D case
+		#DX , tX = np.array(trainingX), np.array(targetX)	
 		errorList = []
-		#print DX
-		#print tX
+		print DX.shape
+		print tX.shape
+		
 		kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
 		
-		gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9,alpha=1e-2)		
-		print "DOING GP FIT"
-		gp.fit(DX, tX)
-		print "DONE GP FIT"
+		gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9,alpha=1e-2)	
 
+		print "DOING GP FIT"
+		gp.fit(DX.transpose(), tX.transpose())
+		
+		#For 2D case
+		#gp.fit(DX, tX) 
+		
+		print "DONE GP FIT"
+		
 		testX = []
 		testTargetX = []
 		testRecord = record[800:1000]
 		for elements in testRecord:
-			testX.append(elements[0])
+			testX.append(min(elements[0]))
 			testTargetX.append(elements[1])
 
-		predictRecord = np.array( testX )
+		predictRecord = np.matrix( testX )
+		#predictRecord = np.array( testX )
 		#print predictRecord
 		i = 0
-		for element in predictRecord:
+		#for element in predictRecord:
+		for element in predictRecord.transpose():
 			#print element
 			mu,sigma  = gp.predict( element, return_std=True, return_cov=False)
 			print i
-			print mu[0]
+			print mu[0]			
 			print testTargetX[i]
 			#print sigma
 			error =  testTargetX[i] - mu[0]
 			print error
 			print "----------"
 			errorList.append(error)
-			i+=1
+			i+=1	
 		print errorList
-		plt.plot(errorList)
+		for i in range(0,len(errorList)):
+			plt.scatter(testX[i],errorList[i])
 		plt.show()
 		
