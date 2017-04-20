@@ -8,15 +8,16 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from scipy.stats import multivariate_normal
 from scipy.integrate import dblquad
 import matplotlib.pyplot as plt
-import pickle
+
 np.random.seed(1)
 
 class update_gp_class:
 
 	def update_gp(self,record):
+		recordTraining = record[0:799]
 		trainingX = []
 		targetX = []
-		for elements in record:
+		for elements in recordTraining:
 			trainingX.append(elements[0])
 			targetX.append( elements[1] )
 		print "IN UPDATE GP"
@@ -31,25 +32,28 @@ class update_gp_class:
 		print "DOING GP FIT"
 		gp.fit(DX, tX)
 		print "DONE GP FIT"
-		i = 0
 
-		with open ('training_set', 'rb') as fp:
-			content = pickle.load(fp)
+		testX = []
+		testTargetX = []
+		testRecord = record[800:1000]
+		for elements in testRecord:
+			testX.append(elements[0])
+			testTargetX.append(elements[1])
 
-
-		for elements in content:
-			trainingX.append(elements[0])
-
-		predictRecord = trainingX[80:100]
+		predictRecord = np.array( testX )
 		#print predictRecord
-		
+		i = 0
 		for element in predictRecord:
 			#print element
 			mu,sigma  = gp.predict( element, return_std=True, return_cov=False)
-			#print mu
+			print i
+			print mu[0]
+			print testTargetX[i]
 			#print sigma
-			error =  tX[i] - mu
-			errorList.append(error[0])
+			error =  testTargetX[i] - mu[0]
+			print error
+			print "----------"
+			errorList.append(error)
 			i+=1
 		print errorList
 		plt.plot(errorList)

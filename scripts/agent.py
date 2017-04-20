@@ -60,7 +60,7 @@ def agent_client():
 	DX , tX = np.array( trainingX ), np.array( targetX )
 	gp_obj.update_gp(record)
 	'''
-	gp_obj.update_gp(record)
+	#gp_obj.update_gp(record)
 	'''
 	output = open('training_set', 'w')
 	output.write(str(record))
