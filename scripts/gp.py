@@ -60,17 +60,21 @@ class update_gp_class:
 		for element in predictRecord.transpose():
 			#print element
 			mu,sigma  = gp.predict( element, return_std=True, return_cov=False)
-			print i
-			print mu[0]			
-			print testTargetX[i]
+			#print i
+			#print mu[0]			
+			#print testTargetX[i]
 			#print sigma
-			error =  testTargetX[i] - mu[0]
-			print error
-			print "----------"
+			error =  abs(testTargetX[i] - mu[0])
+			#print error
+			#print "----------"
 			errorList.append(error)
 			i+=1	
-		print errorList
+		
 		for i in range(0,len(errorList)):
-			plt.scatter(testX[i],errorList[i])
+
+			if testX[i] < 50:
+				plt.scatter(testX[i],errorList[i])
+		plt.xlabel('Minimum Distance to obstacle')
+		plt.ylabel('Absolute Prediction Error')
 		plt.show()
 		
