@@ -14,7 +14,7 @@ np.random.seed(1)
 class update_gp_class:
 
 	def update_gp(self,record):
-		recordTraining = record[0:100]
+		recordTraining = record[0:1000]
 		trainingX = []
 		targetX = []
 		tempList = []
@@ -48,7 +48,7 @@ class update_gp_class:
 		
 		testX = []
 		testTargetX = []
-		testRecord = record[0:100]
+		testRecord = record[0:1000]
 		for elements in testRecord:
 			testX.append(min(elements[0]))
 			testTargetX.append(elements[1])
@@ -71,23 +71,24 @@ class update_gp_class:
 			errorList.append(mu[0])
 			varList.append(sigma[0])
 			i+=1	
-		'''
+		
 		for i in range(0,len(errorList)):
 
 			if testX[i] < 50:
 				#plt.scatter(testX[i],errorList[i])
 				plt.errorbar(testX[i], errorList[i], varList[i], linestyle='None', marker='^')
-		'''
+		
+		plt.xlim(0,7)
 		plt.ylim(-2,2)
 		plt.xlabel('Minimum Distance to obstacle')
 		plt.ylabel('Predicted reward')
 		
-		for i in range(0,len(errorList)):
-			if testX[i] < 50:
-				if testX[i] > 3 and testX[i] < 4:
-					plt.plot(testX[i],1,'.r')
-				else:
-					plt.plot(testX[i],-1,'.r')
+		iterator = np.arange(0,6,0.01)
+		for i in iterator:
+			if i > 3 and i < 4:
+				plt.plot(i,1,'.b')
+			else:
+				plt.plot(i,-1,'.b')
 
 		plt.show()
 		
