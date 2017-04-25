@@ -14,7 +14,7 @@ np.random.seed(1)
 class update_gp_class:
 
 	def update_gp(self,record):
-		recordTraining = record[0:800]
+		recordTraining = record[0:100]
 		trainingX = []
 		targetX = []
 		tempList = []
@@ -30,6 +30,7 @@ class update_gp_class:
 		#For 2D case
 		#DX , tX = np.array(trainingX), np.array(targetX)	
 		errorList = []
+		varList = []
 		print DX.shape
 		print tX.shape
 		
@@ -47,7 +48,7 @@ class update_gp_class:
 		
 		testX = []
 		testTargetX = []
-		testRecord = record[800:1000]
+		testRecord = record[0:100]
 		for elements in testRecord:
 			testX.append(min(elements[0]))
 			testTargetX.append(elements[1])
@@ -64,17 +65,29 @@ class update_gp_class:
 			#print mu[0]			
 			#print testTargetX[i]
 			#print sigma
-			error =  abs(testTargetX[i] - mu[0])
+			#error =  abs(testTargetX[i] - mu[0])
 			#print error
 			#print "----------"
-			errorList.append(error)
+			errorList.append(mu[0])
+			varList.append(sigma[0])
 			i+=1	
-		
+		'''
 		for i in range(0,len(errorList)):
 
 			if testX[i] < 50:
-				plt.scatter(testX[i],errorList[i])
+				#plt.scatter(testX[i],errorList[i])
+				plt.errorbar(testX[i], errorList[i], varList[i], linestyle='None', marker='^')
+		'''
+		plt.ylim(-2,2)
 		plt.xlabel('Minimum Distance to obstacle')
-		plt.ylabel('Absolute Prediction Error')
+		plt.ylabel('Predicted reward')
+		
+		for i in range(0,len(errorList)):
+			if testX[i] < 50:
+				if testX[i] > 3 and testX[i] < 4:
+					plt.plot(testX[i],1,'.r')
+				else:
+					plt.plot(testX[i],-1,'.r')
+
 		plt.show()
 		

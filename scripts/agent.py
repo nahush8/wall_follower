@@ -67,7 +67,8 @@ def agent_client():
 	output.flush()
 	output.close()
 	'''
-	with open('training_set', 'wb') as fp:
+	timestr = time.strftime("%Y%m%d-%H%M%S")
+	with open(timestr, 'wb') as fp:
 		pickle.dump(record, fp)
 	fp.close()
 
