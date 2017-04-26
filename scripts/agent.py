@@ -33,13 +33,35 @@ def agent_client():
 
 	#while not rospy.is_shutdown():
 	while counter < 100:
+		
 		joy = rospy.wait_for_message("joy",Joy)
-
-		joyAction[0] = joy.axes[0] #YAW #lh
-		joyAction[1] = joy.axes[1] #Z  #lv
-		joyAction[2] = joy.axes[2] #x #rh
-		joyAction[3] = joy.axes[3] #y #rv
-
+		if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
+			joyAction[0] = joy.axes[0] #YAW #lh
+			joyAction[1] = joy.axes[1] #Z  #lv
+			joyAction[2] = joy.axes[2] #x #rh
+			joyAction[3] = joy.axes[3] #y #rv
+		else:
+			choose = random.randint(0,3)
+			if choose == 0:
+				joyAction[0] = float(random.sample([-1,1],1)[0]) #YAW #lh
+				joyAction[1] = 0.0 #Z  #lv
+				joyAction[2] = 0.0 #x #rh
+				joyAction[3] = 0.0 #y #rv
+			elif choose == 1:
+				joyAction[0] = 0.0 #YAW #lh
+				joyAction[1] = float(random.sample([-1,1],1)[0]) #Z  #lv
+				joyAction[2] = 0.0 #x #rh
+				joyAction[3] = 0.0 #y #rv
+			elif choose == 2:
+				joyAction[0] = 0.0 #YAW #lh
+				joyAction[1] = 0.0 #Z  #lv
+				joyAction[2] = float(random.sample([-1,1],1)[0]) #x #rh
+				joyAction[3] = 0.0 #y #rv
+			elif choose == 3:
+				joyAction[0] = 0.0 #YAW #lh
+				joyAction[1] = 0.0 #Z  #lv
+				joyAction[2] = 0.0 #x #rh
+				joyAction[3] =float(random.sample([-1,1],1)[0]) #y #rv
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		#print goal
 		action_client.send_goal(goal,done_cb= done)

@@ -3,7 +3,7 @@ import gp
 import pickle 
 
 gp_obj = gp.update_gp_class()
-with open ('training_set', 'rb') as fp:
+with open ('20170426-151730', 'rb') as fp:
 	record = pickle.load(fp)
 #print record
 #recordTraining = record[0:80]
