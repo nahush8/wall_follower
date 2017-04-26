@@ -14,7 +14,7 @@ np.random.seed(1)
 class update_gp_class:
 
 	def update_gp(self,record):
-		recordTraining = record[0:1000]
+		recordTraining = record
 		trainingX = []
 		targetX = []
 		tempList = []
@@ -25,7 +25,11 @@ class update_gp_class:
 			#trainingX.append(elements[0])
 			targetX.append(elements[1])
 		print "IN UPDATE GP"
-
+		binsHist = np.arange(0,6,0.01)
+		plt.figure(1)
+		plt.subplot(211)
+		plt.hist(trainingX,bins=binsHist,color='r')
+		
 		DX , tX = np.matrix(trainingX), np.matrix(targetX)	
 		#For 2D case
 		#DX , tX = np.array(trainingX), np.array(targetX)	
@@ -48,12 +52,12 @@ class update_gp_class:
 		
 		testX = []
 		testTargetX = []
-		testRecord = record[0:1000]
+		testRecord = np.arange(0,6,0.01)
 		for elements in testRecord:
-			testX.append(min(elements[0]))
-			testTargetX.append(elements[1])
+			testX.append(elements)
 
 		predictRecord = np.matrix( testX )
+
 		#predictRecord = np.array( testX )
 		#print predictRecord
 		i = 0
@@ -71,15 +75,14 @@ class update_gp_class:
 			errorList.append(mu[0])
 			varList.append(sigma[0])
 			i+=1	
-		
+		plt.subplot(212)
 		for i in range(0,len(errorList)):
 
 			if testX[i] < 50:
 				#plt.scatter(testX[i],errorList[i])
-				plt.errorbar(testX[i], errorList[i], varList[i], linestyle='None', marker='^')
+				plt.errorbar(testX[i], errorList[i], varList[i], linestyle='None', marker='^',ecolor='g')
 		
 		plt.xlim(0,7)
-		plt.ylim(-2,2)
 		plt.xlabel('Minimum Distance to obstacle')
 		plt.ylabel('Predicted reward')
 		
