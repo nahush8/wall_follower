@@ -32,22 +32,49 @@ def agent_client():
 	print "Connected"
 
 	#while not rospy.is_shutdown():
-	while counter < 100:
+	while counter < 1000:
 		
 		joy = rospy.wait_for_message("joy",Joy)
-		if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
+		#if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
+		joyList = []
+		joyList.append(abs(joy.axes[0]))
+		joyList.append(abs(joy.axes[1]))
+		joyList.append(abs(joy.axes[2]))
+		joyList.append(abs(joy.axes[3]))
+
+		maxjoy = max(joyList)
+
+		if maxjoy == abs(joy.axes[0]):
 			joyAction[0] = joy.axes[0] #YAW #lh
+			joyAction[1] = 0 #Z  #lv
+			joyAction[2] = 0 #x #rh
+			joyAction[3] = 0 #y #rv
+		elif maxjoy == abs(joy.axes[1]):
+			joyAction[0] = 0 #YAW #lh
 			joyAction[1] = joy.axes[1] #Z  #lv
+			joyAction[2] = 0 #x #rh
+			joyAction[3] = 0 #y #rv
+		elif maxjoy == abs(joy.axes[2]):
+			joyAction[0] = 0 #YAW #lh
+			joyAction[1] = 0 #Z  #lv
 			joyAction[2] = joy.axes[2] #x #rh
+			joyAction[3] = 0 #y #rv
+		elif maxjoy == abs(joy.axes[3]):
+			joyAction[0] = 0 #YAW #lh
+			joyAction[1] = 0 #Z  #lv
+			joyAction[2] = 0 #x #rh
 			joyAction[3] = joy.axes[3] #y #rv
+			'''
 		else:
-			choose = random.randint(0,3)
+			choose = random.randint(1,3)
+			
 			if choose == 0:
 				joyAction[0] = float(random.sample([-1,1],1)[0]) #YAW #lh
 				joyAction[1] = 0.0 #Z  #lv
 				joyAction[2] = 0.0 #x #rh
 				joyAction[3] = 0.0 #y #rv
-			elif choose == 1:
+			
+			if choose == 1:
 				joyAction[0] = 0.0 #YAW #lh
 				joyAction[1] = float(random.sample([-1,1],1)[0]) #Z  #lv
 				joyAction[2] = 0.0 #x #rh
@@ -62,6 +89,7 @@ def agent_client():
 				joyAction[1] = 0.0 #Z  #lv
 				joyAction[2] = 0.0 #x #rh
 				joyAction[3] =float(random.sample([-1,1],1)[0]) #y #rv
+		'''
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		#print goal
 		action_client.send_goal(goal,done_cb= done)
@@ -107,7 +135,8 @@ def done(returnCode,result):
 			#	value = 9999
 		
 		print result.reward
-		print rawLaserDataList
+		print min(rawLaserDataList)
+		print counter
 		record.append([rawLaserDataList, result.reward])
 		counter = counter + 1 
 if __name__ == '__main__':

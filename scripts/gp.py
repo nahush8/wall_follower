@@ -28,6 +28,8 @@ class update_gp_class:
 		binsHist = np.arange(0,6,0.01)
 		plt.figure(1)
 		plt.subplot(211)
+		plt.xlabel('Minimum Distance to obstacle')
+		plt.ylabel('Number of Samples')
 		plt.hist(trainingX,bins=binsHist,color='r')
 		
 		DX , tX = np.matrix(trainingX), np.matrix(targetX)	

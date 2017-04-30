@@ -23,7 +23,7 @@ class environment(object):
 		print "Action server started"
 
 	def execute(self,goal):
-		Wall_x = 5.10
+		Wall_x = 5.06
 		local_pos_pub = rospy.Publisher("mavros/setpoint_position/local",PoseStamped,queue_size=10)
 		local_vel_pub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel",TwistStamped,queue_size=10)
 		pose = PoseStamped()
@@ -32,7 +32,7 @@ class environment(object):
 		LINEAR_X_MUL_FACTOR = 2
 		LINEAR_Y_MUL_FACTOR = 2
 		LINEAR_Z_MUL_FACTOR = 2
-		ANGULAR_Z_MUL_FACTOR = 2
+		ANGULAR_Z_MUL_FACTOR = 1
 
 		state = rospy.wait_for_message("mavros/state",State)
 		if state.mode != 'OFFBOARD':
@@ -55,7 +55,7 @@ class environment(object):
 			vel.twist.linear.y = y * LINEAR_Y_MUL_FACTOR
 			vel.twist.linear.z = z * LINEAR_Z_MUL_FACTOR
 			vel.twist.angular.z = yaw * ANGULAR_Z_MUL_FACTOR
-			for i in range(0,10):
+			for i in range(0,5):
 				local_vel_pub.publish(vel)
 				time.sleep(0.1)
 		else:
