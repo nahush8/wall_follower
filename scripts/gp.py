@@ -14,7 +14,7 @@ np.random.seed(1)
 class update_gp_class:
 
 	def update_gp(self,record):
-		recordTraining = record
+		recordTraining =random.sample(record,10)
 		trainingX = []
 		targetX = []
 		tempList = []
@@ -59,7 +59,7 @@ class update_gp_class:
 		
 		testX = []
 		testTargetX = []
-		testRecord = np.arange(0,6,0.001)
+		testRecord = np.arange(0,6,0.01)
 		for elements in testRecord:
 			testX.append(elements)
 
