@@ -14,7 +14,8 @@ np.random.seed(1)
 class update_gp_class:
 
 	def update_gp(self,record):
-		recordTraining =random.sample(record,10)
+		#recordTraining =random.sample(record,500)
+		recordTraining = record
 		trainingX = []
 		targetX = []
 		tempList = []
@@ -45,9 +46,10 @@ class update_gp_class:
 		varList = []
 		print DX.shape
 		print tX.shape
-		kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-1, 1e1))
+		kernel = C(1.0, (1e-3, 1e3)) * RBF(1, (1e-1, 1e1)) #C is a constant kernel and RBF is the squared exp kernel.
 		
-		gp = GaussianProcessRegressor(kernel=kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)	
+		gp = GaussianProcessRegressor(kernel=kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)
+		#gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9,alpha=1e-2)	
 
 		print "DOING GP FIT"
 		gp.fit(DX.transpose(), tX.transpose())
