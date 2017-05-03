@@ -136,7 +136,7 @@ def done(returnCode,result):
 		
 		print result.reward
 		print min(rawLaserDataList)
-		print counter
+		print count
 		record.append([rawLaserDataList, result.reward])
 		counter = counter + 1 
 if __name__ == '__main__':
