@@ -20,76 +20,46 @@ from geometry_msgs.msg import *
 from sensor_msgs.msg import Joy, LaserScan
 
 record = []
+training_record = []
 gp_obj = gp.update_gp_class()
 np.random.seed(1)
 counter = 0
+current_state = [8,8,8,8,8,8,8,8]
+new_state = [8,8,8,8,8,8,8,8]
+action = [0,0,0]
+
 def agent_client():
 	global record
 	global counter
+	global current_state
+	global new_state
 	joyAction = [0,0,0,0]
 	action_client = actionlib.SimpleActionClient('perception',wall_follower.msg.agentAction)
 	action_client.wait_for_server()
 	print "Connected"
 
 	#while not rospy.is_shutdown():
-	while counter < 1000:
+	while counter < 10:
 		
 		joy = rospy.wait_for_message("joy",Joy)
-		#if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
-		joyList = []
-		joyList.append(abs(joy.axes[0]))
-		joyList.append(abs(joy.axes[1]))
-		joyList.append(abs(joy.axes[2]))
-		joyList.append(abs(joy.axes[3]))
-
-		maxjoy = max(joyList)
-
-		if maxjoy == abs(joy.axes[0]):
+		if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
 			joyAction[0] = joy.axes[0] #YAW #lh
-			joyAction[1] = 0 #Z  #lv
-			joyAction[2] = 0 #x #rh
-			joyAction[3] = 0 #y #rv
-		elif maxjoy == abs(joy.axes[1]):
-			joyAction[0] = 0 #YAW #lh
+
 			joyAction[1] = joy.axes[1] #Z  #lv
-			joyAction[2] = 0 #x #rh
-			joyAction[3] = 0 #y #rv
-		elif maxjoy == abs(joy.axes[2]):
-			joyAction[0] = 0 #YAW #lh
-			joyAction[1] = 0 #Z  #lv
 			joyAction[2] = joy.axes[2] #x #rh
-			joyAction[3] = 0 #y #rv
-		elif maxjoy == abs(joy.axes[3]):
-			joyAction[0] = 0 #YAW #lh
-			joyAction[1] = 0 #Z  #lv
-			joyAction[2] = 0 #x #rh
-			joyAction[3] = joy.axes[3] #y #rv
-			'''
+			joyAction[3] = joy.axes[3]#y #rv
+			
 		else:
-			choose = random.randint(1,3)
-			
-			if choose == 0:
-				joyAction[0] = float(random.sample([-1,1],1)[0]) #YAW #lh
-				joyAction[1] = 0.0 #Z  #lv
-				joyAction[2] = 0.0 #x #rh
-				joyAction[3] = 0.0 #y #rv
-			
-			if choose == 1:
-				joyAction[0] = 0.0 #YAW #lh
-				joyAction[1] = float(random.sample([-1,1],1)[0]) #Z  #lv
-				joyAction[2] = 0.0 #x #rh
-				joyAction[3] = 0.0 #y #rv
-			elif choose == 2:
-				joyAction[0] = 0.0 #YAW #lh
-				joyAction[1] = 0.0 #Z  #lv
-				joyAction[2] = float(random.sample([-1,1],1)[0]) #x #rh
-				joyAction[3] = 0.0 #y #rv
-			elif choose == 3:
-				joyAction[0] = 0.0 #YAW #lh
-				joyAction[1] = 0.0 #Z  #lv
-				joyAction[2] = 0.0 #x #rh
-				joyAction[3] =float(random.sample([-1,1],1)[0]) #y #rv
-		'''
+			joyAction[0] = 0.0 #YAW #lh
+			joyAction[1] = float(random.uniform(-0.1,0.1)) #Z  #lv
+			joyAction[2] = float(random.uniform(-0.1,0.1)) #x #rh
+			joyAction[3] = float(random.uniform(-0.1,0.1)) #y #rv
+
+		action[0] = joyAction[2]
+		action[1] = joyAction[3]
+		action[2] = joyAction[1]
+
+		current_state = rospy.wait_for_message("laser/scan",LaserScan)
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		#print goal
 		action_client.send_goal(goal,done_cb= done)
@@ -125,19 +95,23 @@ def agent_client():
 def done(returnCode,result): 
 	global record  
 	global counter
+	global current_state
+	global new_state
+	global action
+
 	rawLaserDataList = []
 	if returnCode == 3:
 		print "Successful"
 		rawLaserDataList = list(result.state)
 		for index, value in enumerate(rawLaserDataList):
 			if value == float('inf'):
-				rawLaserDataList[index] = 9999
+				rawLaserDataList[index] = 8
 			#	value = 9999
-		
+		new_state = rawLaserDataList
 		print result.reward
 		print min(rawLaserDataList)
-		print counter
-		record.append([rawLaserDataList, result.reward])
+		print counter		
+		record.append([current_state,action,result.reward, new_state])
 		counter = counter + 1 
 if __name__ == '__main__':
     try:
@@ -145,4 +119,3 @@ if __name__ == '__main__':
         agent_client()
         #rospy.spin()
     except rospy.ROSInterruptException:
-        print "program interrupted before completion"
