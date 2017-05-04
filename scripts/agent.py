@@ -119,7 +119,7 @@ def agent_client():
 	'''
 	timestr = time.strftime("%Y%m%d-%H%M%S")
 	with open(timestr, 'wb') as fp:
-		pickle.dump(record, fp)
+		pickle.dump(mu, fp)
 	fp.close()
 
 def done(returnCode,result): 

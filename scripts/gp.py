@@ -8,6 +8,7 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from scipy.stats import multivariate_normal
 from scipy.integrate import dblquad
 import matplotlib.pyplot as plt
+import pickle
 
 np.random.seed(1)
 
@@ -46,11 +47,13 @@ class update_gp_class:
 		binsHist = np.arange(0,6,0.01)
 		plt.figure(1)
 		plt.subplot(311)
+		plt.xlim(0,8)
 		plt.xlabel('Minimum Distance to obstacle')
 		plt.ylabel('Number of Samples')
 		plt.hist(trainingMinX,bins=binsHist,color='r')
 		plt.grid()
 		plt.subplot(312)
+		plt.xlim(0,8)
 		plt.scatter(trainingMinX,targetX,color='red')
 		plt.grid()
 		
@@ -60,6 +63,7 @@ class update_gp_class:
 		
 		errorList = []
 		varList = []
+		meanList = []
 		print DX.shape
 		print tX.shape
 		kernel = C(1.0, (1e-3, 1e3)) * RBF(1, (1e-1, 1e1)) #C is a constant kernel and RBF is the squared exp kernel.
@@ -102,18 +106,37 @@ class update_gp_class:
 			#print testTargetX[i]
 			#print sigma
 			error =  abs(testTargetX[i] - mu[0])
-			print error
-			print "----------"
-			errorList.append(mu[0])
+			#print error
+			#print "----------"
+			meanList.append(mu[0])
+			errorList.append(error)
 			varList.append(sigma[0])
 			i+=1	
+
+		file = 'mu_'
+		with open(file, 'wb') as fp:
+			pickle.dump(meanList, fp)
+		fp.close()
+
+		file = 'sigma_' 
+		with open(file, 'wb') as fp:
+			pickle.dump(varList, fp)
+		fp.close()
+
+		file = 'true_target_'
+		with open(file, 'wb') as fp:
+			pickle.dump(testTargetX, fp)
+		fp.close()
+
+
 		plt.subplot(313)
-		for i in range(0,len(errorList)):
+		#plt.xlim(0,8)
+		for i in range(0,len(meanList)):
 
 			#if testX[i] < 50:
-				#plt.scatter(test[i],errorList[i])
-			plt.errorbar(testMinX[i], errorList[i], varList[i], linestyle='None', marker='^',ecolor='g')
-		#plt.xlim(0,7)
+			plt.scatter(i,meanList[i],color='black')
+			plt.scatter(i,testTargetX[i],color='red')
+			#plt.errorbar(testMinX[i], meanList[i], varList[i], linestyle='None', marker='^',ecolor='g')
 		plt.xlabel('Minimum Distance to obstacle')
 		plt.ylabel('Predicted reward')
 		
