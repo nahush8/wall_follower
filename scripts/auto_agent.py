@@ -26,13 +26,14 @@ np.random.seed(1)
 counter = 0
 current_state = [8,8,8,8,8,8,8,8]
 new_state = [8,8,8,8,8,8,8,8]
-action = [0,0,0]
+action_vector = [0,0,0]
 
 def agent_client():
 	global record
 	global counter
 	global current_state
 	global new_state
+	global action_vector
 	joyAction = [0,0,0,0]
 	action_client = actionlib.SimpleActionClient('perception',wall_follower.msg.agentAction)
 	action_client.wait_for_server()
@@ -48,18 +49,24 @@ def agent_client():
 			joyAction[1] = joy.axes[1] #Z  #lv
 			joyAction[2] = joy.axes[2] #x #rh
 			joyAction[3] = joy.axes[3]#y #rv
-			
+		'''	
 		else:
 			joyAction[0] = 0.0 #YAW #lh
 			joyAction[1] = float(random.uniform(-0.1,0.1)) #Z  #lv
 			joyAction[2] = float(random.uniform(-0.1,0.1)) #x #rh
 			joyAction[3] = float(random.uniform(-0.1,0.1)) #y #rv
+		'''
+		action_vector[0] = joyAction[2]
+		action_vector[1] = joyAction[3]
+		action_vector[2] = joyAction[1]
 
-		action[0] = joyAction[2]
-		action[1] = joyAction[3]
-		action[2] = joyAction[1]
+		current_state_laser_data = rospy.wait_for_message("laser/scan",LaserScan)
+		current_state = list(current_state_laser_data.ranges)
 
-		current_state = rospy.wait_for_message("laser/scan",LaserScan)
+		for index, value in enumerate(current_state):
+			if value == float('inf'):
+				current_state[index] = 8
+
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		#print goal
 		action_client.send_goal(goal,done_cb= done)
@@ -97,7 +104,7 @@ def done(returnCode,result):
 	global counter
 	global current_state
 	global new_state
-	global action
+	global action_vector
 
 	rawLaserDataList = []
 	if returnCode == 3:
@@ -108,10 +115,32 @@ def done(returnCode,result):
 				rawLaserDataList[index] = 8
 			#	value = 9999
 		new_state = rawLaserDataList
+		'''
+		print "------------"
+		print "------------"
+		print current_state
+		print action_vector
 		print result.reward
-		print min(rawLaserDataList)
-		print counter		
-		record.append([current_state,action,result.reward, new_state])
+		print new_state
+		print "------------"
+		print "------------"
+		print "            "
+		print "            "
+		'''
+		training_tuple = (current_state,action_vector,result.reward, new_state)
+		
+		print "------------"
+		print "------------"
+		print training_tuple
+		print "            "
+		print "            "
+		
+		#print result.reward
+		#print min(rawLaserDataList)
+		#print counter		
+		#print action_vector
+		record.append(training_tuple)
+		#print record
 		counter = counter + 1 
 if __name__ == '__main__':
     try:
@@ -119,3 +148,4 @@ if __name__ == '__main__':
         agent_client()
         #rospy.spin()
     except rospy.ROSInterruptException:
+    	print "program interrupted before completion"

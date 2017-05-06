@@ -12,12 +12,15 @@ with open ('true_target_', 'rb') as fp:
 plt.figure(1)
 
 plt.subplot(211)
+
 for i in range(0,len(mu)):
 	#if testX[i] < 50:
 	plt.subplot(211)
+	plt.xlim(0,200)
 	plt.scatter(i,mu[i],color='black')
 	plt.scatter(i,target[i],color='red')
 	plt.subplot(212)
+	plt.xlim(0,200)
 	error = abs(mu[i] - target[i])
 	plt.errorbar(i, mu[i], error, linestyle='None', marker='^',ecolor='g')
 plt.xlabel('Predict sample number')
