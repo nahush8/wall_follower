@@ -29,8 +29,7 @@ class gpq_class:
 					test = np.array((nextState + vector))
 					tempMu,sigma = gp.predict(test, return_std=True, return_cov=False)
 					if tempMu > maxVal:
-						maxVal = tempMu
-		print maxVal			
+						maxVal = float(tempMu[0])		
 		return maxVal
 
 	def gpq_algorithm(self,record):
@@ -46,11 +45,11 @@ class gpq_class:
 			for elements in record:
 			#for element in range (0,len(record)):
 				inputX.append(elements[0] + elements[1])
-				outputY.append(elements[2] +self.findMax(gp,elements[3]))
+				outputY.append((elements[2] +self.findMax(gp,elements[3])))
 			
 			#print inputX
 			dX = np.array(inputX)
-			print dX.shape
+			print outputY
 			tX = np.array(outputY)
 			gp.fit(dX,tX)
 		'''
