@@ -26,15 +26,15 @@ np.random.seed(1)
 counter = 0
 current_state = [8,8,8,8,8,8,8,8]
 new_state = [8,8,8,8,8,8,8,8]
-action_vector = [0,0,0]
+joyAction = [0,0,0,0]
 
 def agent_client():
 	global record
 	global counter
 	global current_state
 	global new_state
-	global action_vector
-	joyAction = [0,0,0,0]
+	global vector
+	global joyAction
 	action_client = actionlib.SimpleActionClient('perception',wall_follower.msg.agentAction)
 	action_client.wait_for_server()
 	print "Connected"
@@ -56,10 +56,11 @@ def agent_client():
 			joyAction[2] = float(random.uniform(-0.1,0.1)) #x #rh
 			joyAction[3] = float(random.uniform(-0.1,0.1)) #y #rv
 		'''
-		action_vector[0] = joyAction[2]
-		action_vector[1] = joyAction[3]
-		action_vector[2] = joyAction[1]
-
+		'''
+		vector[0] = joyAction[2]
+		vector[1] = joyAction[3]
+		vector[2] = joyAction[1]
+		'''
 		current_state_laser_data = rospy.wait_for_message("laser/scan",LaserScan)
 		current_state = list(current_state_laser_data.ranges)
 
@@ -71,23 +72,17 @@ def agent_client():
 		#print goal
 		action_client.send_goal(goal,done_cb= done)
 		action_client.wait_for_result()
+		print "              "
+		print "RECORD IN MAIN"
+		print record[counter-1][1]
+		print "--------------"
+		if counter == 9:
+			print record
 	
 	print "---------- DONE ----------"
 	print record
 	print "=================="
 	print "                  "
-	'''
-	trainingX = []
-	targetX = []
-	for elements in record:
-		trainingX.append(elements[0])
-		targetX.append( elements[1] )
-
-
-	DX , tX = np.array( trainingX ), np.array( targetX )
-	gp_obj.update_gp(record)
-	'''
-	#gp_obj.update_gp(record)
 	'''
 	output = open('training_set', 'w')
 	output.write(str(record))
@@ -104,7 +99,7 @@ def done(returnCode,result):
 	global counter
 	global current_state
 	global new_state
-	global action_vector
+	global joyAction
 
 	rawLaserDataList = []
 	if returnCode == 3:
@@ -115,32 +110,23 @@ def done(returnCode,result):
 				rawLaserDataList[index] = 8
 			#	value = 9999
 		new_state = rawLaserDataList
+		#training_tuple = [current_state,action_vector,result.reward, new_state]
 		'''
-		print "------------"
-		print "------------"
-		print current_state
-		print action_vector
-		print result.reward
-		print new_state
-		print "------------"
-		print "------------"
-		print "            "
-		print "            "
-		'''
-		training_tuple = (current_state,action_vector,result.reward, new_state)
-		
 		print "------------"
 		print "------------"
 		print training_tuple
 		print "            "
 		print "            "
-		
+		'''
 		#print result.reward
 		#print min(rawLaserDataList)
 		#print counter		
 		#print action_vector
-		record.append(training_tuple)
-		#print record
+		record.append([current_state,[joyAction[2],joyAction[3],joyAction[1]],result.reward,new_state])
+		print "                   "
+		print "RECORD IN CALLBACK"
+		print record[counter][1]
+		print "------------------"
 		counter = counter + 1 
 if __name__ == '__main__':
     try:
