@@ -33,15 +33,14 @@ def agent_client():
 	global counter
 	global current_state
 	global new_state
-	global vector
 	global joyAction
 	action_client = actionlib.SimpleActionClient('perception',wall_follower.msg.agentAction)
 	action_client.wait_for_server()
 	print "Connected"
 
 	#while not rospy.is_shutdown():
-	while counter < 10:
-		
+	while counter < 100:
+		joyAction = [0,0,0,0]
 		joy = rospy.wait_for_message("joy",Joy)
 		if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
 			joyAction[0] = joy.axes[0] #YAW #lh
@@ -56,11 +55,6 @@ def agent_client():
 			joyAction[2] = float(random.uniform(-0.1,0.1)) #x #rh
 			joyAction[3] = float(random.uniform(-0.1,0.1)) #y #rv
 		'''
-		'''
-		vector[0] = joyAction[2]
-		vector[1] = joyAction[3]
-		vector[2] = joyAction[1]
-		'''
 		current_state_laser_data = rospy.wait_for_message("laser/scan",LaserScan)
 		current_state = list(current_state_laser_data.ranges)
 
@@ -72,23 +66,11 @@ def agent_client():
 		#print goal
 		action_client.send_goal(goal,done_cb= done)
 		action_client.wait_for_result()
-		print "              "
-		print "RECORD IN MAIN"
-		print record[counter-1][1]
-		print "--------------"
-		if counter == 9:
-			print record
 	
 	print "---------- DONE ----------"
 	print record
 	print "=================="
 	print "                  "
-	'''
-	output = open('training_set', 'w')
-	output.write(str(record))
-	output.flush()
-	output.close()
-	'''
 	timestr = time.strftime("%Y%m%d-%H%M%S")
 	with open(timestr, 'wb') as fp:
 		pickle.dump(record, fp)
@@ -110,24 +92,9 @@ def done(returnCode,result):
 				rawLaserDataList[index] = 8
 			#	value = 9999
 		new_state = rawLaserDataList
-		#training_tuple = [current_state,action_vector,result.reward, new_state]
-		'''
-		print "------------"
-		print "------------"
-		print training_tuple
-		print "            "
-		print "            "
-		'''
-		#print result.reward
-		#print min(rawLaserDataList)
-		#print counter		
-		#print action_vector
 		record.append([current_state,[joyAction[2],joyAction[3],joyAction[1]],result.reward,new_state])
-		print "                   "
-		print "RECORD IN CALLBACK"
-		print record[counter][1]
-		print "------------------"
 		counter = counter + 1 
+		print counter
 if __name__ == '__main__':
     try:
         rospy.init_node('agent', anonymous=True)

@@ -15,8 +15,23 @@ np.random.seed(1)
 class gpq_class:
 
 	def findMax(self,gp,nextState):
-		print nextState
+		tempMu = 0
+		maxVal = 0
+		X = np.arange(-1,1,0.5)
+		Y = np.arange(-1,1,0.5)
+		Z = np.arange(-1,1,0.5)
 
+		for x in X:
+			for y in Y:
+				for z in Z:
+					#print np.array((nextState,[x,y,z]))
+					vector = [x,y,z]
+					test = np.array((nextState + vector))
+					tempMu,sigma = gp.predict(test, return_std=True, return_cov=False)
+					if tempMu > maxVal:
+						maxVal = tempMu
+		print maxVal			
+		return maxVal
 
 	def gpq_algorithm(self,record):
 		
@@ -24,15 +39,20 @@ class gpq_class:
 		
 		gp = GaussianProcessRegressor(kernel=kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)
 
-		inputX = []
-		outputY = []
-		for element in range (0,len(record)):
-			inputX.append((record[element][0],record[element][1]))
-			print record[element][1]
-			#outputY.append(self.findMax(gp,record[element][3]))
-		#print inputX
 
-
+		for i in range(0,100):
+			inputX = []
+			outputY = []
+			for elements in record:
+			#for element in range (0,len(record)):
+				inputX.append(elements[0] + elements[1])
+				outputY.append(elements[2] +self.findMax(gp,elements[3]))
+			
+			#print inputX
+			dX = np.array(inputX)
+			print dX.shape
+			tX = np.array(outputY)
+			gp.fit(dX,tX)
 		'''
 		for item in range(0,len(record[element][0])):
 			if record[element][0][item] == 9999:
