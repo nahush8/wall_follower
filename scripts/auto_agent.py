@@ -37,9 +37,11 @@ def agent_client():
 	action_client = actionlib.SimpleActionClient('perception',wall_follower.msg.agentAction)
 	action_client.wait_for_server()
 	print "Connected"
-
+	'''
+	#TODO: Add a button to stay in place.  
+	'''
 	#while not rospy.is_shutdown():
-	while counter < 100:
+	while counter < 1000:
 		joyAction = [0,0,0,0]
 		joy = rospy.wait_for_message("joy",Joy)
 		if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
@@ -48,13 +50,13 @@ def agent_client():
 			joyAction[1] = joy.axes[1] #Z  #lv
 			joyAction[2] = joy.axes[2] #x #rh
 			joyAction[3] = joy.axes[3]#y #rv
-		'''	
+			
 		else:
-			joyAction[0] = 0.0 #YAW #lh
-			joyAction[1] = float(random.uniform(-0.1,0.1)) #Z  #lv
-			joyAction[2] = float(random.uniform(-0.1,0.1)) #x #rh
-			joyAction[3] = float(random.uniform(-0.1,0.1)) #y #rv
-		'''
+			joyAction[0] = float(random.uniform(-0.5,0.5)) #YAW #lh
+			joyAction[1] = float(random.uniform(-0.5,0.5)) #Z  #lv
+			joyAction[2] = float(random.uniform(-0.5,0.5)) #x #rh
+			joyAction[3] = float(random.uniform(-0.5,0.5)) #y #rv
+		
 		current_state_laser_data = rospy.wait_for_message("laser/scan",LaserScan)
 		current_state = list(current_state_laser_data.ranges)
 
@@ -95,6 +97,7 @@ def done(returnCode,result):
 		record.append([current_state,[joyAction[2],joyAction[3],joyAction[1]],result.reward,new_state])
 		counter = counter + 1 
 		print counter
+		print result.reward
 if __name__ == '__main__':
     try:
         rospy.init_node('agent', anonymous=True)

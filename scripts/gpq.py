@@ -39,7 +39,7 @@ class gpq_class:
 		gp = GaussianProcessRegressor(kernel=kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)
 
 
-		for i in range(0,100):
+		for i in range(0,10):
 			inputX = []
 			outputY = []
 			for elements in record:
