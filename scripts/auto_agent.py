@@ -41,7 +41,7 @@ def agent_client():
 	#TODO: Add a button to stay in place.  
 	'''
 	#while not rospy.is_shutdown():
-	while counter < 1000:
+	while counter < 100:
 		joyAction = [0,0,0,0]
 		joy = rospy.wait_for_message("joy",Joy)
 		if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
@@ -52,10 +52,10 @@ def agent_client():
 			joyAction[3] = joy.axes[3]#y #rv
 			
 		else:
-			joyAction[0] = float(random.uniform(-0.5,0.5)) #YAW #lh
-			joyAction[1] = float(random.uniform(-0.5,0.5)) #Z  #lv
-			joyAction[2] = float(random.uniform(-0.5,0.5)) #x #rh
-			joyAction[3] = float(random.uniform(-0.5,0.5)) #y #rv
+			joyAction[0] = float(random.uniform(-1,1)) #YAW #lh
+			joyAction[1] = float(random.uniform(-1,1)) #Z  #lv
+			joyAction[2] = float(random.uniform(-1,1)) #x #rh
+			joyAction[3] = float(random.uniform(-1,1)) #y #rv
 		
 		current_state_laser_data = rospy.wait_for_message("laser/scan",LaserScan)
 		current_state = list(current_state_laser_data.ranges)

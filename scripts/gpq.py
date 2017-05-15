@@ -9,6 +9,7 @@ from scipy.stats import multivariate_normal
 from scipy.integrate import dblquad
 import matplotlib.pyplot as plt
 import pickle
+import time
 
 np.random.seed(1)
 
@@ -16,21 +17,24 @@ class gpq_class:
 
 	def findMax(self,gp,nextState):
 		tempMu = 0
-		maxVal = 0
-		X = np.arange(-1,1,0.5)
-		Y = np.arange(-1,1,0.5)
-		Z = np.arange(-1,1,0.5)
-
+		arrayList = []
+		X = np.arange(-1,1,0.1)
+		Y = np.arange(-1,1,0.1)
+		Z = np.arange(-1,1,0.1)
 		for x in X:
 			for y in Y:
 				for z in Z:
 					#print np.array((nextState,[x,y,z]))
 					vector = [x,y,z]
-					test = np.array((nextState + vector))
-					tempMu,sigma = gp.predict(test, return_std=True, return_cov=False)
-					if tempMu > maxVal:
-						maxVal = float(tempMu[0])		
-		return maxVal
+					test = nextState + vector
+					#print test
+
+					arrayList.append(test)
+		#print arrayList
+		arrayList = np.array(arrayList)
+		tempMu,sigma = gp.predict(arrayList, return_std=True, return_cov=False) 
+
+		return max(tempMu)
 
 	def gpq_algorithm(self,record):
 		
@@ -39,19 +43,23 @@ class gpq_class:
 		gp = GaussianProcessRegressor(kernel=kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)
 
 
-		for i in range(0,10):
+		for i in range(0,100):
 			inputX = []
 			outputY = []
+			st = time.time()
 			for elements in record:
 			#for element in range (0,len(record)):
 				inputX.append(elements[0] + elements[1])
 				outputY.append((elements[2] +self.findMax(gp,elements[3])))
-			
+			print ("-----TIME FOR GP Predict: %s ----" %(time.time()-st))
 			#print inputX
 			dX = np.array(inputX)
-			print outputY
+			#print outputY
 			tX = np.array(outputY)
+			st = time.time()
 			gp.fit(dX,tX)
+			print ("-----TIME FOR GP FIT: %s ----" %(time.time()-st))
+			print "Done GP fit"
 		'''
 		for item in range(0,len(record[element][0])):
 			if record[element][0][item] == 9999:
