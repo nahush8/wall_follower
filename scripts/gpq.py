@@ -58,6 +58,9 @@ class gpq_class:
 			tX = np.array(outputY)
 			st = time.time()
 			gp.fit(dX,tX)
+			with open(str(i), 'wb') as fp:
+				pickle.dump(gp, fp)
+			fp.close()
 			print ("-----TIME FOR GP FIT: %s ----" %(time.time()-st))
 			print "Done GP fit"
 		'''
