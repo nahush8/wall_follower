@@ -70,7 +70,7 @@ class environment(object):
 		
 		laservalues = laserRawData.ranges
 		print laservalues
-		if min(laservalues) > 0.5 and min(laservalues) <= 1:
+		if min(laservalues) > 0.25 and min(laservalues) <= 1:
 			self._result.reward= -5
 		else:
 			self._result.reward = 10
