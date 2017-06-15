@@ -11,189 +11,142 @@ import matplotlib.pyplot as plt
 import pickle
 import time
 
-np.random.seed(1)
 
-class gpq_class:
+LASER_MAX_VAL = 10
+numOfActions = 4
+numOfLasers = 3
+record = []
+cache = {(LASER_MAX_VAL,LASER_MAX_VAL,LASER_MAX_VAL):2}
 
-	def findMax(self,gp,nextState):
-		tempMu = 0
+class gp_prediction():
+	def __init__(self):
+		#self.rbf_init_length_scale = np.array([1,1,1,1,1,1,1])
+		self.rbf_init_length_scale = np.array([1,1,1,1])
+		self.kernel = C(1.0, (1e-3, 1e3)) * RBF(self.rbf_init_length_scale.shape, (1e-5, 1e5)) #C is a constant kernel and RBF is the squared exp kernel.
+		
+		self.gp = GaussianProcessRegressor(kernel=self.kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)
+		self.gamma = 0.8
+
+	def set_gp(self,gp):
+		self.gp = gp
+	#@profile
+	def findMax(self,next_state):
 		arrayList = []
-		X = np.arange(-1,1,0.1)
-		Y = np.arange(-1,1,0.1)
-		Z = np.arange(-1,1,0.1)
-		for x in X:
-			for y in Y:
-				for z in Z:
-					#print np.array((nextState,[x,y,z]))
-					vector = [x,y,z]
-					test = nextState + vector
-					#print test
-
-					arrayList.append(test)
-		#print arrayList
+		for x in range(0,numOfActions):
+			test = next_state + [x]
+			arrayList.append(test)
 		arrayList = np.array(arrayList)
-		tempMu,sigma = gp.predict(arrayList, return_std=True, return_cov=False) 
-
+		tempMu,sigma = self.gp.predict(arrayList, return_std=True, return_cov=False) 
 		return max(tempMu)
 
-	def gpq_algorithm(self,record):
+	#@profile
+	def gpq(self,record):
+		inputX = []
+		outputY = []
 		
-		kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-1, 1e1)) #C is a constant kernel and RBF is the squared exp kernel.
-		
-		gp = GaussianProcessRegressor(kernel=kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)
-
-
-		for i in range(0,100):
-			inputX = []
-			outputY = []
-			st = time.time()
-			for elements in record:
+		for elements in record:
 			#for element in range (0,len(record)):
-				inputX.append(elements[0] + elements[1])
-				outputY.append((elements[2] +self.findMax(gp,elements[3])))
-			print ("-----TIME FOR GP Predict: %s ----" %(time.time()-st))
+			inputX.append(elements[0] + [elements[1]])
+			outputY.append((elements[2] + self.gamma * self.findMax(elements[3])))
 			#print inputX
-			dX = np.array(inputX)
-			#print outputY
-			tX = np.array(outputY)
-			st = time.time()
-			gp.fit(dX,tX)
-			with open(str(i), 'wb') as fp:
-				pickle.dump(gp, fp)
-			fp.close()
-			print ("-----TIME FOR GP FIT: %s ----" %(time.time()-st))
-			print "Done GP fit"
-		'''
-		for item in range(0,len(record[element][0])):
-			if record[element][0][item] == 9999:
-				record[element][0][item] = 8
-		'''
-		'''			
-		recordTraining =random.sample(record,800)
-		testSet = []
-		for item in record:
-			#print item
-			if item not in recordTraining:
-				#print item
-				testSet.append(item)
-		#recordTraining = record
-		print len(testSet)
-		trainingX = []
-		trainingMinX = []
-		targetX = []
-		tempList = []
-		for elements in recordTraining:
-			val =  min(elements[0])
-			#if val <= 7:
-			#print "----------"
-			trainingMinX.append(val)
-			trainingX.append(elements[0])
-			targetX.append(elements[1])
-		print "IN UPDATE GP"
-		
 
-		binsHist = np.arange(0,6,0.01)
-		plt.figure(1)
-		plt.subplot(311)
-		plt.xlim(0,8)
-		plt.xlabel('Minimum Distance to obstacle')
-		plt.ylabel('Number of Samples')
-		plt.hist(trainingMinX,bins=binsHist,color='r')
-		plt.grid()
-		plt.subplot(312)
-		plt.xlim(0,8)
-		plt.scatter(trainingMinX,targetX,color='red')
-		plt.grid()
-		
-		#DX , tX = np.matrix(trainingMinX), np.matrix(targetX)	
-		#For 2D case
-		DX , tX = np.array(trainingX), np.array(targetX)	
-		
-		errorList = []
-		varList = []
-		meanList = []
-		print DX.shape
-		print tX.shape
-		kernel = C(1.0, (1e-3, 1e3)) * RBF(1, (1e-1, 1e1)) #C is a constant kernel and RBF is the squared exp kernel.
-		
-		gp = GaussianProcessRegressor(kernel=kernel,optimizer='fmin_l_bfgs_b' ,n_restarts_optimizer=9,alpha=1e-2)
-		#gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9,alpha=1e-2)	
-		
+		dX = np.array(inputX)
+		#print outputY
+		tX = np.array(outputY)
+		#st = time.time()
 		print "DOING GP FIT"
-		#gp.fit(DX.transpose(), tX.transpose())
-		#print gp.get_params()
-		
-		#For 2D case
-		gp.fit(DX, tX) 
-		
-		print "DONE GP FIT"
-		
-		testX = []
-		testMinX = []
-		testTargetX = []
-		
-		#testRecord = np.arange(0,6,0.01)
-		#for elements in testRecord:
-		#	testX.append(elements)
-		#predictRecord = np.matrix( testX )
-		for elements in testSet:
-			val =  min(elements[0])
-			testMinX.append(val)
-			testX.append(elements[0])
-			testTargetX.append(elements[1])
-
-		predictRecord = np.array( testX )
-		#print predictRecord
-		i = 0
-		for element in predictRecord:
-		#for element in predictRecord.transpose():
-			#print element
-			mu,sigma  = gp.predict(element, return_std=True, return_cov=False)
-			#print i
-			#print mu[0]			
-			#print testTargetX[i]
-			#print sigma
-			error =  abs(testTargetX[i] - mu[0])
-			#print error
-			#print "----------"
-			meanList.append(mu[0])
-			errorList.append(error)
-			varList.append(sigma[0])
-			i+=1	
-
-		file = 'mu_'
-		with open(file, 'wb') as fp:
-			pickle.dump(meanList, fp)
+		self.gp.fit(dX,tX)
+		with open('gp_june14_env4_new', 'wb') as fp:
+			pickle.dump(self.gp, fp)
 		fp.close()
+	#@profile
+	def choose_action(self,next_state):
+		tempMu = 0
+		arrayList = []
+		listMu = []
+		action_value = 2
+		#if len(record) > 1200:
+		ret = cache.get(tuple(next_state),-999)
+		#else:
+		if ret != -999:
+			return ret
+		else:
+			for x in range(0,numOfActions):
+				test = next_state + [x]
+				arrayList.append(test)
+			arrayList = np.array(arrayList)
+			tempMu,sigma = self.gp.predict(arrayList, return_std=True, return_cov=False) 
+			listMu = list(tempMu)
+			maxIndex  = listMu.index(max(listMu))
+			tempList = arrayList[maxIndex]
+			#print tempList
+			action_value = tempList[numOfLasers]
+			#print action_value
+			#if len(record) > 1200:
+			cache[tuple(next_state)] = action_value
+			return action_value
 
-		file = 'sigma_' 
-		with open(file, 'wb') as fp:
-			pickle.dump(varList, fp)
-		fp.close()
+'''
+if __name__ == "__main__":
 
-		file = 'true_target_'
-		with open(file, 'wb') as fp:
-			pickle.dump(testTargetX, fp)
-		fp.close()
-
-
-		plt.subplot(313)
-		#plt.xlim(0,8)
-		for i in range(0,len(meanList)):
-
-			#if testX[i] < 50:
-			plt.scatter(i,meanList[i],color='black')
-			plt.scatter(i,testTargetX[i],color='red')
-			#plt.errorbar(testMinX[i], meanList[i], varList[i], linestyle='None', marker='^',ecolor='g')
-		plt.xlabel('Minimum Distance to obstacle')
-		plt.ylabel('Predicted reward')
-		
-		iterator = np.arange(0,6,0.001)
-		for i in iterator:
-			if i > 3 and i < 4:
-				plt.plot(i,1,'.b')
+	i = 0
+	j = 0
+	itr = 0	
+	epsilon = 0.1
+	good_epoch = 0
+	epoch = 0
+	iteration = 0
+	average_sum_of_rewards = 0
+	prev_epoch_reward = 0
+	net_sum_of_rewards = 0
+	prev_length_of_record = 0
+	game_obj = gameEngine2.GameState()
+	gp_obj = gp_prediction()
+	sum_of_reward_per_epoch = 0
+	prev_state = [LASER_MAX_VAL,LASER_MAX_VAL,LASER_MAX_VAL]
+	prev_state = np.array([prev_state])
+	next_state = [[LASER_MAX_VAL,LASER_MAX_VAL,LASER_MAX_VAL]]
+	timestr = time.strftime("%Y%m%d-%H%M%S")
+	maxEpoch = 6
+	record_for_epoch = []
+	
+	with open ('gp_june14_env2', 'rb') as fp:
+			gp = pickle.load(fp)
+	
+	gp_obj.set_gp(gp)
+	while epoch < 1000:
+		if i != 0:
+			randomNumber = random.random()
+			if randomNumber >= epsilon:
+				action = gp_obj.choose_action(next_state.tolist()[0])
 			else:
-				plt.plot(i,-1,'.b')
-		plt.grid()
-		plt.show()
-		'''
+				action = random.randint(0, numOfActions-1)		
+			#action = gp_obj.choose_action(next_state.tolist()[0])
+		else:
+			action = random.randint(0, 3)
+		curr_reward, next_state = game_obj.frame_step(action)
+		iteration = iteration + 1
+		#newRecord = [prev_state.tolist()[0],action,curr_reward,next_state.tolist()[0]]
+		#if newRecord not in record:
+		#record.append(newRecord)
+		prev_state = next_state		
+
+		sum_of_reward_per_epoch += curr_reward
+
+		if iteration % 200 == 0:
+			#prev_length_of_record = len(record)
+			#plt.scatter(j,sum_of_reward_per_epoch)
+
+			with open(timestr + '_gpq', 'a') as fp:
+				fp.write(str(sum_of_reward_per_epoch) + '\n')
+				fp.flush()
+			#fp.close()
+			#plot_obj.plotting(record)
+			print 'REWARD COLLECTED THIS EPOCH: %d' % sum_of_reward_per_epoch
+			sum_of_reward_per_epoch = 0
+			#j += 1
+			#plot_obj.plotting(record)
+			epoch += 1
+		i += 1
+		#plt.pause(0.05)
+'''

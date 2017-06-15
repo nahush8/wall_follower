@@ -13,7 +13,7 @@ import time
 
 class gp_predict_class:		
 	def choose_action(self,state):
-		with open ('1', 'rb') as fp:
+		with open ('8', 'rb') as fp:
 			gp = pickle.load(fp)
 
 		tempMu = 0

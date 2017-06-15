@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import actionlib
 import matplotlib.pyplot as plt
 import wall_follower.msg
-import gp
+import gpq
 import mavros
 import pickle
 #import update_transition_class
@@ -20,20 +20,29 @@ from geometry_msgs.msg import *
 from sensor_msgs.msg import Joy, LaserScan
 
 record = []
-gp_obj = gp.update_gp_class()
+gp_obj = gpq.gp_prediction()
 np.random.seed(1)
-counter = 0
+curr_reward = 0
+state = [8,8,8]
+
 def agent_client():
 	global record
-	global counter
+	global curr_reward
+	global state
+	timestr = time.strftime("%Y%m%d-%H%M%S")
+	sum_of_reward_per_epoch = 0
+	epoch = 0
+	iteration = 0
+	epsilon = 0.2
+	numOfActions = 4
 	joyAction = [0,0,0,0]
 	action_client = actionlib.SimpleActionClient('perception',wall_follower.msg.agentAction)
 	action_client.wait_for_server()
 	print "Connected"
 
-	#while not rospy.is_shutdown():
-	while counter < 1000:
-		
+	while epoch < 1000:
+	#while counter < 1000:
+		'''
 		joy = rospy.wait_for_message("joy",Joy)
 		#if joy.axes[0] != 0 or joy.axes[1] != 0 or joy.axes[2] != 0 or joy.axes[3] != 0:
 		joyList = []
@@ -64,81 +73,148 @@ def agent_client():
 			joyAction[1] = 0 #Z  #lv
 			joyAction[2] = 0 #x #rh
 			joyAction[3] = joy.axes[3] #y #rv
-			'''
+			
 		else:
-			choose = random.randint(1,3)
-			
-			if choose == 0:
-				joyAction[0] = float(random.sample([-1,1],1)[0]) #YAW #lh
-				joyAction[1] = 0.0 #Z  #lv
-				joyAction[2] = 0.0 #x #rh
-				joyAction[3] = 0.0 #y #rv
-			
-			if choose == 1:
-				joyAction[0] = 0.0 #YAW #lh
-				joyAction[1] = float(random.sample([-1,1],1)[0]) #Z  #lv
-				joyAction[2] = 0.0 #x #rh
-				joyAction[3] = 0.0 #y #rv
-			elif choose == 2:
-				joyAction[0] = 0.0 #YAW #lh
-				joyAction[1] = 0.0 #Z  #lv
-				joyAction[2] = float(random.sample([-1,1],1)[0]) #x #rh
-				joyAction[3] = 0.0 #y #rv
-			elif choose == 3:
-				joyAction[0] = 0.0 #YAW #lh
-				joyAction[1] = 0.0 #Z  #lv
-				joyAction[2] = 0.0 #x #rh
-				joyAction[3] =float(random.sample([-1,1],1)[0]) #y #rv
 		'''
+
+		for i in range(0,5):
+			joyAction[0] = 0
+			joyAction[1] = 0.5
+			joyAction[2] = 0
+			joyAction[3] = 0
+			goal = wall_follower.msg.agentGoal(action= joyAction)
+		#print goal
+			action_client.send_goal(goal,done_cb= done)
+			action_client.wait_for_result()
+		joyAction[0] = 0
+		joyAction[1] = 0
+		joyAction[2] = 0
+		joyAction[3] = 0
+		goal = wall_follower.msg.agentGoal(action= joyAction)
+	#print goal
+		action_client.send_goal(goal,done_cb= done)
+		action_client.wait_for_result()
+		print "DONE!"
+
+		with open ('gp_june9', 'rb') as fp:
+			gp = pickle.load(fp)
+	
+		gp_obj.set_gp(gp)
+
+		while epoch < 1000:
+			if i != 0:
+				randomNumber = random.random()
+				if randomNumber >= epsilon:
+					action = gp_obj.choose_action(state)
+				else:
+					action = random.randint(0, numOfActions-1)		
+				#action = gp_obj.choose_action(next_state.tolist()[0])
+			else:
+				action = random.randint(0, 3)
+			
+			if action == 0:
+				joyAction[0] = -1
+				joyAction[1] = 0
+				joyAction[2] = 0
+				joyAction[3] = 0
+			elif action == 1:
+				joyAction[0] = 1
+				joyAction[1] = 0
+				joyAction[2] = 0
+				joyAction[3] = 0
+			elif action == 2:
+				joyAction[0] = 0
+				joyAction[1] = 0
+				joyAction[2] = 1
+				joyAction[3] = 0
+			elif action == 3:
+				joyAction[0] = 0
+				joyAction[1] = 0
+				joyAction[2] = -1
+				joyAction[3] = 0
+
+			goal = wall_follower.msg.agentGoal(action= joyAction)
+			print goal
+			action_client.send_goal(goal,done_cb= done)
+			action_client.wait_for_result()
+
+
+			iteration = iteration + 1	
+			print epoch
+			sum_of_reward_per_epoch += curr_reward
+
+			if iteration % 200 == 0:
+				#prev_length_of_record = len(record)
+				#plt.scatter(j,sum_of_reward_per_epoch)
+
+				with open(timestr + '_gpq', 'a') as fp:
+					fp.write(str(sum_of_reward_per_epoch) + '\n')
+					fp.flush()
+				#fp.close()
+				#plot_obj.plotting(record)
+				print 'REWARD COLLECTED THIS EPOCH: %d' % sum_of_reward_per_epoch
+				sum_of_reward_per_epoch = 0
+				#j += 1
+				#plot_obj.plotting(record)
+				epoch += 1
+		i += 1
+		#plt.pause(0.05)
+
+		'''
+		choose = random.randint(1,3)
+		
+		if choose == 0:
+			joyAction[0] = float(random.sample([-1,1],1)[0]) #YAW #lh
+			joyAction[1] = 0.0 #Z  #lv
+			joyAction[2] = 0.0 #x #rh
+			joyAction[3] = 0.0 #y #rv
+		
+		if choose == 1:
+			joyAction[0] = 0.0 #YAW #lh
+			joyAction[1] = float(random.sample([-1,1],1)[0]) #Z  #lv
+			joyAction[2] = 0.0 #x #rh
+			joyAction[3] = 0.0 #y #rv
+		elif choose == 2:
+			joyAction[0] = 0.0 #YAW #lh
+			joyAction[1] = 0.0 #Z  #lv
+			joyAction[2] = float(random.sample([-1,1],1)[0]) #x #rh
+			joyAction[3] = 0.0 #y #rv
+		elif choose == 3:
+			joyAction[0] = 0.0 #YAW #lh
+			joyAction[1] = 0.0 #Z  #lv
+			joyAction[2] = 0.0 #x #rh
+			joyAction[3] =float(random.sample([-1,1],1)[0]) #y #rv
+		
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		#print goal
 		action_client.send_goal(goal,done_cb= done)
 		action_client.wait_for_result()
 	
-	print "---------- DONE ----------"
-	print record
-	print "=================="
-	print "                  "
-	'''
-	trainingX = []
-	targetX = []
-	for elements in record:
-		trainingX.append(elements[0])
-		targetX.append( elements[1] )
+		'''
 
-
-	DX , tX = np.array( trainingX ), np.array( targetX )
-	gp_obj.update_gp(record)
-	'''
-	#gp_obj.update_gp(record)
-	'''
-	output = open('training_set', 'w')
-	output.write(str(record))
-	output.flush()
-	output.close()
-	'''
-	timestr = time.strftime("%Y%m%d-%H%M%S")
-	with open(timestr, 'wb') as fp:
-		pickle.dump(record, fp)
-	fp.close()
-
-def done(returnCode,result): 
-	global record  
-	global counter
+def done(returnCode,result):
+	global curr_reward 
+	global record 
+	global state 
 	rawLaserDataList = []
+	l = []
 	if returnCode == 3:
 		print "Successful"
 		rawLaserDataList = list(result.state)
 		for index, value in enumerate(rawLaserDataList):
 			if value == float('inf'):
-				rawLaserDataList[index] = 9999
-			#	value = 9999
+				rawLaserDataList[index] = 8
+			#	value = 9999	
+		if curr_reward == -5:	
+			curr_reward = result.reward
+		else:
+			l = [int(i) for i in rawLaserDataList]
+			curr_reward = sum(l)
+
+		state = rawLaserDataList
 		
-		print result.reward
+		print curr_reward
 		print min(rawLaserDataList)
-		print count
-		record.append([rawLaserDataList, result.reward])
-		counter = counter + 1 
 if __name__ == '__main__':
     try:
         rospy.init_node('agent', anonymous=True)

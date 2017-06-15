@@ -23,16 +23,15 @@ class environment(object):
 		print "Action server started"
 
 	def execute(self,goal):
-		Wall_x = 5.06
 		local_pos_pub = rospy.Publisher("mavros/setpoint_position/local",PoseStamped,queue_size=10)
 		local_vel_pub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel",TwistStamped,queue_size=10)
 		pose = PoseStamped()
 		vel = TwistStamped()
 
-		LINEAR_X_MUL_FACTOR = 2
-		LINEAR_Y_MUL_FACTOR = 2
-		LINEAR_Z_MUL_FACTOR = 2
-		ANGULAR_Z_MUL_FACTOR = 1
+		LINEAR_X_MUL_FACTOR = 1
+		LINEAR_Y_MUL_FACTOR = 0
+		LINEAR_Z_MUL_FACTOR = 1
+		ANGULAR_Z_MUL_FACTOR = 0.2
 
 		state = rospy.wait_for_message("mavros/state",State)
 		if state.mode != 'OFFBOARD':
@@ -55,7 +54,7 @@ class environment(object):
 			vel.twist.linear.y = y * LINEAR_Y_MUL_FACTOR
 			vel.twist.linear.z = z * LINEAR_Z_MUL_FACTOR
 			vel.twist.angular.z = yaw * ANGULAR_Z_MUL_FACTOR
-			for i in range(0,5):
+			for i in range(0,10):
 				local_vel_pub.publish(vel)
 				time.sleep(0.1)
 		else:
@@ -68,13 +67,15 @@ class environment(object):
 		laserRawData = rospy.wait_for_message("laser/scan",LaserScan)
 		
 		curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)
-		if abs(curr_pose.pose.position.x - Wall_x) > 3 and abs(curr_pose.pose.position.x - Wall_x) < 4:
-			self._result.reward= 1
+		
+		laservalues = laserRawData.ranges
+		print laservalues
+		if min(laservalues) > 0.5 and min(laservalues) <= 1:
+			self._result.reward= -5
 		else:
-			self._result.reward= -1
+			self._result.reward = 10
 		
 		self._result.state = laserRawData.ranges
-		print "1 unit movement"
 		self._as.set_succeeded(self._result)
 
 if __name__ == '__main__':
