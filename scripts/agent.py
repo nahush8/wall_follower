@@ -77,24 +77,26 @@ def agent_client():
 		
 	else:
 	'''
-
 	for i in range(0,5):
-		joyAction[0] = 0
-		joyAction[1] = 0.5
+		joyAction[0] = 1
+		joyAction[1] = 1
 		joyAction[2] = 0
 		joyAction[3] = 0
 		goal = wall_follower.msg.agentGoal(action= joyAction)
-	#print goal
+		#print goal
 		action_client.send_goal(goal,done_cb= done)
 		action_client.wait_for_result()
+	'''
 	joyAction[0] = 0
 	joyAction[1] = 0
 	joyAction[2] = 0
 	joyAction[3] = 0
+	
 	goal = wall_follower.msg.agentGoal(action= joyAction)
 	#print goal
 	action_client.send_goal(goal,done_cb= done)
 	action_client.wait_for_result()
+	'''
 	print "DONE!"
 
 	with open ('gp_june9', 'rb') as fp:
@@ -113,27 +115,34 @@ def agent_client():
 		else:
 			action = random.randint(0, 3)
 		
+		
+		joyAction[0] = 0
+		joyAction[1] = 0
+		joyAction[2] = 0
+		joyAction[3] = 1
+		
+		'''
 		if action == 0:
-			joyAction[0] = -1
-			joyAction[1] = 0
-			joyAction[2] = 0
-			joyAction[3] = 0
-		elif action == 1:
 			joyAction[0] = 1
-			joyAction[1] = 0
-			joyAction[2] = 0
-			joyAction[3] = 0
-		elif action == 2:
-			joyAction[0] = 0
-			joyAction[1] = 0
+			joyAction[1] = 1
 			joyAction[2] = 0
 			joyAction[3] = 1
+		elif action == 1:
+			joyAction[0] = -1
+			joyAction[1] = 1
+			joyAction[2] = 0
+			joyAction[3] = 1
+		elif action == 2:
+			joyAction[0] = 0
+			joyAction[1] = 1
+			joyAction[2] = 1
+			joyAction[3] = 0
 		elif action == 3:
 			joyAction[0] = 0
-			joyAction[1] = 0
-			joyAction[2] = 0
-			joyAction[3] = -1
-
+			joyAction[1] = 1
+			joyAction[2] = -0.2
+			joyAction[3] = 0
+		'''
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		print goal
 		action_client.send_goal(goal,done_cb= done)
@@ -147,10 +156,11 @@ def agent_client():
 		if iteration % 20 == 0:
 			#prev_length_of_record = len(record)
 			#plt.scatter(j,sum_of_reward_per_epoch)
-
+			'''
 			with open(timestr + '_gpq', 'a') as fp:
 				fp.write(str(sum_of_reward_per_epoch) + '\n')
 				fp.flush()
+			'''
 			#fp.close()
 			#plot_obj.plotting(record)
 			print 'REWARD COLLECTED THIS EPOCH: %d' % sum_of_reward_per_epoch
@@ -159,38 +169,38 @@ def agent_client():
 			#plot_obj.plotting(record)
 			epoch += 1
 		i += 1
+	fp.close()
+	'''
+	choose = random.randint(1,3)
 	
-		'''
-		choose = random.randint(1,3)
-		
-		if choose == 0:
-			joyAction[0] = float(random.sample([-1,1],1)[0]) #YAW #lh
-			joyAction[1] = 0.0 #Z  #lv
-			joyAction[2] = 0.0 #x #rh
-			joyAction[3] = 0.0 #y #rv
-		
-		if choose == 1:
-			joyAction[0] = 0.0 #YAW #lh
-			joyAction[1] = float(random.sample([-1,1],1)[0]) #Z  #lv
-			joyAction[2] = 0.0 #x #rh
-			joyAction[3] = 0.0 #y #rv
-		elif choose == 2:
-			joyAction[0] = 0.0 #YAW #lh
-			joyAction[1] = 0.0 #Z  #lv
-			joyAction[2] = float(random.sample([-1,1],1)[0]) #x #rh
-			joyAction[3] = 0.0 #y #rv
-		elif choose == 3:
-			joyAction[0] = 0.0 #YAW #lh
-			joyAction[1] = 0.0 #Z  #lv
-			joyAction[2] = 0.0 #x #rh
-			joyAction[3] =float(random.sample([-1,1],1)[0]) #y #rv
-		
-		goal = wall_follower.msg.agentGoal(action= joyAction)
-		#print goal
-		action_client.send_goal(goal,done_cb= done)
-		action_client.wait_for_result()
+	if choose == 0:
+		joyAction[0] = float(random.sample([-1,1],1)[0]) #YAW #lh
+		joyAction[1] = 0.0 #Z  #lv
+		joyAction[2] = 0.0 #x #rh
+		joyAction[3] = 0.0 #y #rv
 	
-		'''
+	if choose == 1:
+		joyAction[0] = 0.0 #YAW #lh
+		joyAction[1] = float(random.sample([-1,1],1)[0]) #Z  #lv
+		joyAction[2] = 0.0 #x #rh
+		joyAction[3] = 0.0 #y #rv
+	elif choose == 2:
+		joyAction[0] = 0.0 #YAW #lh
+		joyAction[1] = 0.0 #Z  #lv
+		joyAction[2] = float(random.sample([-1,1],1)[0]) #x #rh
+		joyAction[3] = 0.0 #y #rv
+	elif choose == 3:
+		joyAction[0] = 0.0 #YAW #lh
+		joyAction[1] = 0.0 #Z  #lv
+		joyAction[2] = 0.0 #x #rh
+		joyAction[3] =float(random.sample([-1,1],1)[0]) #y #rv
+	
+	goal = wall_follower.msg.agentGoal(action= joyAction)
+	#print goal
+	action_client.send_goal(goal,done_cb= done)
+	action_client.wait_for_result()
+
+	'''
 
 def done(returnCode,result):
 	global curr_reward 
@@ -208,10 +218,14 @@ def done(returnCode,result):
 		if curr_reward == -5:	
 			curr_reward = result.reward
 		else:
-			l = [int(i) for i in rawLaserDataList]
+			l = [int(round(i)) for i in rawLaserDataList]
 			curr_reward = sum(l)
 
 		state = l
+		temp = state[0]
+		state[0] = state[2]
+		state[2] = temp
+
 		print state
 		print curr_reward
 if __name__ == '__main__':
