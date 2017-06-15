@@ -33,14 +33,14 @@ class environment(object):
 		raw.coordinate_frame = 8 #FRAME_BODY_OFFSET_NED
 		#raw.type_mask = int('0000101011000111',2)
 		#raw.type_mask = 3011
-		raw.type_mask = 967 #519 
+		raw.type_mask = 1991 #519 
 		pose = PoseStamped()
 		vel = TwistStamped()
 
-		LINEAR_X_MUL_FACTOR = 50
-		LINEAR_Y_MUL_FACTOR = 50
-		LINEAR_Z_MUL_FACTOR = 5
-		ANGULAR_Z_MUL_FACTOR = 5
+		LINEAR_X_MUL_FACTOR = 0.2
+		LINEAR_Y_MUL_FACTOR = 0.2
+		LINEAR_Z_MUL_FACTOR = 1
+		ANGULAR_Z_MUL_FACTOR = 0.2
 
 		state = rospy.wait_for_message("mavros/state",State)
 		if state.mode != 'OFFBOARD':
@@ -68,10 +68,11 @@ class environment(object):
 			raw.velocity.x = x * LINEAR_X_MUL_FACTOR
 			raw.velocity.y = y * LINEAR_Y_MUL_FACTOR
 			raw.velocity.z = z * LINEAR_Z_MUL_FACTOR
-			raw.yaw = yaw * ANGULAR_Z_MUL_FACTOR
-			raw.yaw_rate = 1
+			#raw.yaw = yaw * ANGULAR_Z_MUL_FACTOR
+			raw.yaw_rate = yaw * ANGULAR_Z_MUL_FACTOR
+
 			for i in range(0,10):
-				#local_vel_pub.publish(vel)
+				local_vel_pub.publish(vel)
 				vel_pub.publish(raw)
 				time.sleep(0.1)
 		'''
@@ -95,6 +96,7 @@ class environment(object):
 		
 		self._result.state = laserRawData.ranges
 		self._as.set_succeeded(self._result)
+		
 
 if __name__ == '__main__':
     try:

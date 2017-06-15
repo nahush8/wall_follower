@@ -77,8 +77,8 @@ def agent_client():
 		
 	else:
 	'''
-	for i in range(0,5):
-		joyAction[0] = 1
+	for i in range(0,10):
+		joyAction[0] = 0
 		joyAction[1] = 1
 		joyAction[2] = 0
 		joyAction[3] = 0
@@ -116,32 +116,33 @@ def agent_client():
 			action = random.randint(0, 3)
 		
 		
-		joyAction[0] = 0
+		joyAction[0] = 1
 		joyAction[1] = 0
 		joyAction[2] = 0
-		joyAction[3] = 1
+		joyAction[3] = 0
+
 		
 		'''
 		if action == 0:
-			joyAction[0] = 1
-			joyAction[1] = 1
+			joyAction[0] = -1
+			joyAction[1] = 0
 			joyAction[2] = 0
 			joyAction[3] = 1
 		elif action == 1:
-			joyAction[0] = -1
-			joyAction[1] = 1
+			joyAction[0] = 1
+			joyAction[1] = 0
 			joyAction[2] = 0
 			joyAction[3] = 1
 		elif action == 2:
 			joyAction[0] = 0
-			joyAction[1] = 1
-			joyAction[2] = 1
-			joyAction[3] = 0
+			joyAction[1] = 0
+			joyAction[2] = 0
+			joyAction[3] = 1
 		elif action == 3:
 			joyAction[0] = 0
-			joyAction[1] = 1
-			joyAction[2] = -0.2
-			joyAction[3] = 0
+			joyAction[1] = 0
+			joyAction[2] = 
+			joyAction[3] = -0.2
 		'''
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		print goal
