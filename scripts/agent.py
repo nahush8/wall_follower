@@ -115,7 +115,7 @@ def agent_client():
 		else:
 			action = random.randint(0, 3)
 		
-		
+		'''
 		joyAction[0] = 0
 		joyAction[1] = 0
 		joyAction[2] = 0
@@ -143,25 +143,26 @@ def agent_client():
 			joyAction[1] = 0
 			joyAction[2] = 0
 			joyAction[3] = -1
-		'''
+		
 		goal = wall_follower.msg.agentGoal(action= joyAction)
 		print goal
 		action_client.send_goal(goal,done_cb= done)
 		action_client.wait_for_result()
 
 
-		iteration = iteration + 1	
+		iteration = iteration + 1
+		print iteration
 		print epoch
 		sum_of_reward_per_epoch += curr_reward
 
-		if iteration % 20 == 0:
+		if iteration % 200 == 0:
 			#prev_length_of_record = len(record)
 			#plt.scatter(j,sum_of_reward_per_epoch)
-			'''
+			
 			with open(timestr + '_gpq', 'a') as fp:
 				fp.write(str(sum_of_reward_per_epoch) + '\n')
 				fp.flush()
-			'''
+			
 			#fp.close()
 			#plot_obj.plotting(record)
 			print 'REWARD COLLECTED THIS EPOCH: %d' % sum_of_reward_per_epoch

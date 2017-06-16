@@ -33,7 +33,7 @@ def publish():
 		raw.type_mask = 1735 #1991 #519 
 		LINEAR_X_MUL_FACTOR = 0.2
 		LINEAR_Y_MUL_FACTOR = 0.2
-		LINEAR_Z_MUL_FACTOR = 0.5
+		LINEAR_Z_MUL_FACTOR = 1
 		ANGULAR_Z_MUL_FACTOR = 0.2
 		try:
 			data = rospy.wait_for_message("action_topic",String, timeout=0.3)
