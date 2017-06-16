@@ -7,7 +7,7 @@ from mavros_msgs.srv import SetMode, StreamRate, StreamRateRequest, CommandBool,
 from geometry_msgs.msg import *
 import time
 import math
-import std_msgs.msg
+from std_msgs.msg import String
 import actionlib
 import wall_follower.msg
 from sensor_msgs.msg import Joy, LaserScan
@@ -21,27 +21,39 @@ class environment(object):
 		self._as = actionlib.SimpleActionServer(self._action_name,wall_follower.msg.agentAction,execute_cb=self.execute, auto_start = False)
 		self._as.start()
 		print "Action server started"
+		
 
 	def execute(self,goal):
 		local_pos_pub = rospy.Publisher("mavros/setpoint_position/local",PoseStamped,queue_size=10)
+		'''
 		local_vel_pub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel",TwistStamped,queue_size=10)
 		vel_pub = rospy.Publisher("mavros/setpoint_raw/local",PositionTarget,queue_size=10)
-		
+		print "GOT NEW GOAL"
 		raw = PositionTarget()
 		raw.header.stamp = rospy.get_rostime()
 		raw.header.frame_id = "quad_frame"
 		raw.coordinate_frame = 8 #FRAME_BODY_OFFSET_NED
 		#raw.type_mask = int('0000101011000111',2)
 		#raw.type_mask = 3011
-		raw.type_mask = 1991 #519 
+		
+		raw.type_mask = 1735 #1991 #519 
 		pose = PoseStamped()
 		vel = TwistStamped()
 
 		LINEAR_X_MUL_FACTOR = 0.2
 		LINEAR_Y_MUL_FACTOR = 0.2
-		LINEAR_Z_MUL_FACTOR = 1
+		LINEAR_Z_MUL_FACTOR = 0.5
 		ANGULAR_Z_MUL_FACTOR = 0.2
 
+		raw.velocity.x = 0
+		raw.velocity.y = 0
+		raw.velocity.z = 0
+		#raw.yaw = yaw * ANGULAR_Z_MUL_FACTOR
+		raw.yaw_rate = 0
+		vel_pub.publish(raw)
+		'''
+
+		'''
 		state = rospy.wait_for_message("mavros/state",State)
 		if state.mode != 'OFFBOARD':
 		    setModeClient(0,'OFFBOARD')
@@ -50,8 +62,16 @@ class environment(object):
 		if not state.armed:
 		    armingClient(True)
 		    #print "ARMED"
+		'''
 
 		actionValue = goal.action
+		actionString = str(actionValue[0]) + "," + str(actionValue[1]) + "," + str(actionValue[2]) + "," + str(actionValue[3])
+		
+
+		pub = rospy.Publisher("action_topic", String, queue_size=10)
+		pub.publish(actionString)
+		
+		'''
 		yaw = actionValue[0]
 		z = actionValue[1]
 		x = actionValue[2]
@@ -72,9 +92,11 @@ class environment(object):
 			raw.yaw_rate = yaw * ANGULAR_Z_MUL_FACTOR
 
 			for i in range(0,10):
-				local_vel_pub.publish(vel)
+				#local_vel_pub.publish(vel)
 				vel_pub.publish(raw)
+		
 				time.sleep(0.1)
+		'''
 		'''
 		else:
 			curr_pose = rospy.wait_for_message("/mavros/local_position/pose" ,PoseStamped)
@@ -82,6 +104,7 @@ class environment(object):
 				local_pos_pub.publish(curr_pose)
 				time.sleep(0.1)
 		'''
+		
 
 		laserRawData = rospy.wait_for_message("laser/scan",LaserScan)
 		
@@ -96,7 +119,6 @@ class environment(object):
 		
 		self._result.state = laserRawData.ranges
 		self._as.set_succeeded(self._result)
-		
 
 if __name__ == '__main__':
     try:
